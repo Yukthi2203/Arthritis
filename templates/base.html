@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}ArthriCare{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --teal:#0D9488; --teal-light:#14B8A6; --teal-dark:#0F766E;
+      --amber:#F59E0B; --bg:#F0FDFA; --surface:#FFFFFF;
+      --border:#CCFBF1; --text:#134E4A; --sidebar-w:260px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
+    h1,h2,h3,h4,h5{font-family:'Syne',sans-serif;}
+    .sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+      background:var(--teal-dark);display:flex;flex-direction:column;z-index:100;
+      box-shadow:4px 0 24px rgba(13,148,136,.2);}
+    .sidebar-brand{padding:28px 24px 20px;border-bottom:1px solid rgba(255,255,255,.1);}
+    .sidebar-brand h2{color:#fff;font-size:1.5rem;font-weight:800;letter-spacing:-.5px;}
+    .sidebar-brand span{color:var(--amber);}
+    .sidebar-role{font-size:.75rem;color:var(--teal-light);text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+    .sidebar-nav{flex:1;padding:16px 0;overflow-y:auto;}
+    .nav-section{font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;
+      letter-spacing:1.5px;padding:12px 24px 6px;}
+    .sidebar-nav a{display:flex;align-items:center;gap:12px;padding:11px 24px;
+      color:rgba(255,255,255,.75);text-decoration:none;font-size:.9rem;font-weight:500;
+      transition:all .2s;border-left:3px solid transparent;}
+    .sidebar-nav a:hover,.sidebar-nav a.active{background:rgba(255,255,255,.1);color:#fff;border-left-color:var(--amber);}
+    .sidebar-nav a i{font-size:1.1rem;width:20px;}
+    .sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.1);}
+    .sidebar-footer a{color:rgba(255,255,255,.6);text-decoration:none;font-size:.85rem;display:flex;align-items:center;gap:8px;}
+    .main-wrap{margin-left:var(--sidebar-w);min-height:100vh;padding:32px 36px;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 2px 12px rgba(13,148,136,.06);}
+    .stat-card{border-radius:16px;padding:24px;background:var(--surface);border:1px solid var(--border);}
+    .stat-card .stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:12px;}
+    .stat-card .stat-value{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--text);line-height:1;}
+    .stat-card .stat-label{font-size:.8rem;color:#64748b;margin-top:4px;}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+    .page-header h1{font-size:1.75rem;font-weight:800;color:var(--teal-dark);}
+    .btn-teal{background:var(--teal);color:#fff;border:none;border-radius:10px;padding:10px 22px;font-weight:600;transition:background .2s;}
+    .btn-teal:hover{background:var(--teal-dark);color:#fff;}
+    .flash-success{background:#DCFCE7;border:1px solid #86EFAC;color:#166534;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.9rem;}
+    .flash-error{background:#FEE2E2;border:1px solid #FCA5A5;color:#991B1B;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.9rem;}
+    .form-control,.form-select{border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);transition:border-color .2s;}
+    .form-control:focus,.form-select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.12);outline:none;}
+    label{font-weight:500;font-size:.88rem;margin-bottom:6px;}
+    .badge-teal{background:#CCFBF1;color:var(--teal-dark);}
+    .badge-amber{background:#FEF3C7;color:#92400E;}
+    .badge-red{background:#FEE2E2;color:#991B1B;}
+    .badge-green{background:#DCFCE7;color:#166534;}
+    ::-webkit-scrollbar{width:6px;}
+    ::-webkit-scrollbar-thumb{background:var(--teal-light);border-radius:4px;}
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+{% if current_user.is_authenticated %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <h2>Arthri<span>Care</span></h2>
+    <div class="sidebar-role">{% if current_user.is_doctor() %}Doctor / Researcher{% else %}Patient Portal{% endif %}</div>
+  </div>
+  <nav class="sidebar-nav">
+    {% if current_user.is_doctor() %}
+      <div class="nav-section">Overview</div>
+      <a href="{{ url_for('doctor.dashboard') }}" {% if request.endpoint=='doctor.dashboard' %}class="active"{% endif %}><i class="bi bi-grid-1x2"></i> Dashboard</a>
+      <div class="nav-section">Research Tools</div>
+      <a href="#patients"><i class="bi bi-people"></i> All Patients</a>
+      <a href="#predictions"><i class="bi bi-cpu"></i> ML Predictions</a>
+    {% else %}
+      <div class="nav-section">Overview</div>
+      <a href="{{ url_for('patient.dashboard') }}" {% if request.endpoint=='patient.dashboard' %}class="active"{% endif %}><i class="bi bi-grid-1x2"></i> Dashboard</a>
+      <a href="{{ url_for('patient.monitoring') }}" {% if request.endpoint=='patient.monitoring' %}class="active"{% endif %}><i class="bi bi-activity"></i> Monitoring</a>
+      <div class="nav-section">Daily Tracking</div>
+      <a href="{{ url_for('patient.pain_tracker') }}" {% if request.endpoint=='patient.pain_tracker' %}class="active"{% endif %}><i class="bi bi-thermometer-half"></i> Pain Tracker</a>
+      <a href="{{ url_for('patient.heart_rate') }}" {% if request.endpoint=='patient.heart_rate' %}class="active"{% endif %}><i class="bi bi-heart-pulse"></i> Heart Rate</a>
+      <div class="nav-section">Health Management</div>
+      <a href="{{ url_for('patient.diet_plan') }}" {% if request.endpoint=='patient.diet_plan' %}class="active"{% endif %}><i class="bi bi-egg-fried"></i> Diet Plan</a>
+      <a href="{{ url_for('patient.exercise_plan') }}" {% if request.endpoint=='patient.exercise_plan' %}class="active"{% endif %}><i class="bi bi-bicycle"></i> Exercise Plan</a>
+      <div class="nav-section">AI Detection</div>
+      <a href="{{ url_for('patient.upload_report') }}" {% if request.endpoint=='patient.upload_report' %}class="active"{% endif %}><i class="bi bi-cloud-upload"></i> Upload Reports</a>
+      <a href="{{ url_for('ml.predict') }}" {% if request.endpoint=='ml.predict' %}class="active"{% endif %}><i class="bi bi-robot"></i> ML Prediction</a>
+    {% endif %}
+  </nav>
+  <div class="sidebar-footer">
+    <a href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-left"></i> Logout — {{ current_user.full_name }}</a>
+  </div>
+</aside>
+{% endif %}
+<div class="{% if current_user.is_authenticated %}main-wrap{% endif %}">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for category, message in messages %}
+      <div class="flash-{{ category }}"><i class="bi bi-{% if category=='success' %}check-circle{% else %}exclamation-circle{% endif %}"></i> {{ message }}</div>
+    {% endfor %}{% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

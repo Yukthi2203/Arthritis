@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}ArthriCare — Arthritis Health Management{% endblock %}
+{% block content %}
+<style>
+  body { background: linear-gradient(135deg, #0F766E 0%, #134E4A 60%, #1a2e2e 100%); min-height: 100vh; }
+  .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 20px; }
+  .hero-badge { background: rgba(245,158,11,.15); border: 1px solid rgba(245,158,11,.3); color: #FCD34D; border-radius: 100px; padding: 6px 18px; font-size: .8rem; letter-spacing: 1px; text-transform: uppercase; display: inline-block; margin-bottom: 24px; }
+  .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; color: #fff; letter-spacing: -1px; line-height: 1.05; margin-bottom: 20px; }
+  .hero h1 span { color: #5EEAD4; }
+  .hero p { font-size: 1.15rem; color: rgba(255,255,255,.7); max-width: 560px; margin: 0 auto 40px; line-height: 1.7; }
+  .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .btn-hero-primary { background: #F59E0B; color: #1a1a1a; border: none; border-radius: 12px; padding: 14px 32px; font-weight: 700; font-size: 1rem; font-family: 'Syne', sans-serif; text-decoration: none; transition: all .2s; }
+  .btn-hero-primary:hover { background: #FCD34D; transform: translateY(-2px); }
+  .btn-hero-secondary { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.2); border-radius: 12px; padding: 14px 32px; font-weight: 600; font-size: 1rem; text-decoration: none; transition: all .2s; }
+  .btn-hero-secondary:hover { background: rgba(255,255,255,.18); }
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 900px; margin: 60px auto 0; }
+  .feature-card { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 24px; text-align: center; }
+  .feature-card i { font-size: 2rem; color: #5EEAD4; margin-bottom: 12px; display: block; }
+  .feature-card h4 { color: #fff; font-size: .95rem; font-weight: 600; margin-bottom: 6px; }
+  .feature-card p { color: rgba(255,255,255,.5); font-size: .82rem; line-height: 1.5; }
+  .arthritis-types { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 32px; }
+  .type-pill { background: rgba(20,184,166,.15); border: 1px solid rgba(20,184,166,.3); color: #5EEAD4; border-radius: 100px; padding: 5px 14px; font-size: .78rem; }
+</style>
+<div class="hero">
+  <div class="hero-badge">🦴 AI-Powered Arthritis Management</div>
+  <h1>Take Control of<br>Your <span>Joint Health</span></h1>
+  <p>Early detection, daily tracking, personalized diet & exercise plans — everything you need to manage arthritis, all in one place.</p>
+  <div class="hero-btns">
+    <a href="{{ url_for('auth.register') }}" class="btn-hero-primary">Get Started Free</a>
+    <a href="{{ url_for('auth.login') }}" class="btn-hero-secondary">Sign In</a>
+  </div>
+  <div class="arthritis-types">
+    <span class="type-pill">Rheumatoid Arthritis</span>
+    <span class="type-pill">Osteoarthritis</span>
+    <span class="type-pill">Gout</span>
+    <span class="type-pill">Psoriatic Arthritis</span>
+    <span class="type-pill">Ankylosing Spondylitis</span>
+    <span class="type-pill">Juvenile Idiopathic</span>
+  </div>
+  <div class="features">
+    <div class="feature-card"><i class="bi bi-robot"></i><h4>AI Early Detection</h4><p>Hybrid SVM + Random Forest model analyzes X-rays & blood reports</p></div>
+    <div class="feature-card"><i class="bi bi-thermometer-half"></i><h4>Pain Tracking</h4><p>Log daily pain scores per joint with trend visualization</p></div>
+    <div class="feature-card"><i class="bi bi-egg-fried"></i><h4>Diet Planning</h4><p>Anti-inflammatory diet plans tailored to your arthritis type</p></div>
+    <div class="feature-card"><i class="bi bi-bicycle"></i><h4>Exercise Plans</h4><p>Low-impact exercise & walk planning based on your pain level</p></div>
+    <div class="feature-card"><i class="bi bi-heart-pulse"></i><h4>Heart Monitoring</h4><p>Track heart rate and correlate it with inflammation levels</p></div>
+  </div>
+</div>
+{% endblock %}

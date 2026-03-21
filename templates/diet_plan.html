@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Diet Plan — ArthriCare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1><i class="bi bi-egg-fried me-2" style="color:#22C55E;"></i>Your Personalised Diet Plan</h1>
+    <p style="color:#64748b;margin-top:4px;font-size:.9rem;">
+      Based on: <strong>{{ arthritis_type }}</strong> · Pain Score Today: 
+      <span style="font-weight:700;color:{{ '#22C55E' if pain_score<=3 else '#F59E0B' if pain_score<=6 else '#EF4444' }};">{{ pain_score }}/10</span>
+    </p>
+  </div>
+</div>
+
+<!-- Pain-level alert -->
+{% if recs.pain_level == 'high' %}
+<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:14px;padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start;">
+  <i class="bi bi-exclamation-triangle-fill" style="color:#EF4444;font-size:1.3rem;margin-top:2px;"></i>
+  <div><strong style="color:#991B1B;">High Pain Alert</strong>
+  <p style="margin:4px 0 0;font-size:.88rem;color:#7F1D1D;">Your pain score is high. Focus on anti-inflammatory foods and avoid any food triggers listed below. Stay well hydrated.</p></div>
+</div>
+{% endif %}
+
+<!-- Symptom Explanations -->
+{% if recs.explanations %}
+<div class="card p-4 mb-4">
+  <h5 style="font-weight:700;margin-bottom:4px;"><i class="bi bi-info-circle me-2" style="color:#6366F1;"></i>Understanding Your Symptoms & Markers</h5>
+  <p style="font-size:.83rem;color:#64748b;margin-bottom:16px;">These were flagged from your recent logs and blood reports:</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;">
+    {% for key, exp in recs.explanations.items() %}
+    <div style="background:#F8FAFF;border:1px solid #E0E7FF;border-radius:12px;padding:16px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:1.3rem;">{{ exp.icon }}</span>
+        <strong style="font-size:.88rem;color:#1E1B4B;">{{ exp.name }}</strong>
+      </div>
+      <div style="font-size:.8rem;color:#64748b;margin-bottom:6px;"><span style="font-weight:600;color:#374151;">What it is:</span> {{ exp.what_is }}</div>
+      <div style="font-size:.8rem;color:#991B1B;background:#FEF2F2;border-radius:8px;padding:6px 10px;"><span style="font-weight:600;">Elevated means:</span> {{ exp.high_means }}</div>
+      <div style="font-size:.75rem;color:#6366F1;margin-top:6px;">Normal range: {{ exp.normal }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Diet Focus Banner -->
+<div style="background:linear-gradient(135deg,#0F766E,#0D9488);border-radius:16px;padding:22px 28px;margin-bottom:24px;color:#fff;">
+  <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;opacity:.75;margin-bottom:6px;">Diet Strategy for {{ arthritis_type }}</div>
+  <p style="font-size:1rem;font-weight:500;line-height:1.6;margin:0;">{{ recs.diet.focus }}</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1.2fr 1fr;gap:24px;margin-bottom:24px;">
+  <!-- Best Foods -->
+  <div class="card p-4">
+    <h5 style="font-weight:700;margin-bottom:16px;color:#166534;"><i class="bi bi-check-circle-fill me-2"></i>Best Foods for You</h5>
+    {% for food in recs.diet.best_foods %}
+    <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #F0FDF4;align-items:flex-start;">
+      <span style="font-size:1.4rem;min-width:28px;">{{ food.emoji }}</span>
+      <div>
+        <div style="font-weight:600;font-size:.9rem;">{{ food.name }}</div>
+        <div style="font-size:.78rem;color:#64748b;margin-top:2px;">{{ food.reason }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Avoid Foods + Meal Plan -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="card p-4">
+      <h5 style="font-weight:700;margin-bottom:14px;color:#991B1B;"><i class="bi bi-x-circle-fill me-2"></i>Foods to Avoid</h5>
+      {% for food in recs.diet.avoid %}
+      <div style="padding:8px 0;border-bottom:1px solid #FEF2F2;">
+        <div style="font-weight:600;font-size:.85rem;color:#7F1D1D;">⚠️ {{ food.name }}</div>
+        <div style="font-size:.76rem;color:#64748b;margin-top:2px;">{{ food.reason }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="card p-4">
+      <h5 style="font-weight:700;margin-bottom:14px;"><i class="bi bi-calendar-check me-2" style="color:#0D9488;"></i>Suggested Meal Plan</h5>
+      {% for meal_type, suggestion in recs.diet.meal_plan.items() %}
+      <div style="padding:8px 0;border-bottom:1px solid #F0FDFA;">
+        <span style="font-size:.7rem;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:6px;
+          background:{% if meal_type=='Breakfast' %}#FEF3C7{% elif meal_type=='Lunch' %}#DCFCE7{% elif meal_type=='Dinner' %}#EDE9FE{% else %}#F0FDFA{% endif %};
+          color:{% if meal_type=='Breakfast' %}#92400E{% elif meal_type=='Lunch' %}#166534{% elif meal_type=='Dinner' %}#5B21B6{% else %}#0F766E{% endif %};">
+          {{ meal_type }}
+        </span>
+        <div style="font-size:.82rem;color:#374151;margin-top:5px;">{{ suggestion }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Log Meal Form -->
+<div class="card p-4">
+  <h5 style="font-weight:700;margin-bottom:20px;"><i class="bi bi-plus-circle me-2" style="color:#22C55E;"></i>Log What You Ate</h5>
+  <form method="POST">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:12px;align-items:end;">
+      <div>
+        <label>Food Item</label>
+        <input type="text" name="food_item" class="form-control" placeholder="e.g. Grilled Salmon with spinach" required>
+      </div>
+      <div>
+        <label>Meal Type</label>
+        <select name="meal_type" class="form-select">
+          <option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option>
+        </select>
+      </div>
+      <div>
+        <label>Qty (grams)</label>
+        <input type="number" name="quantity_grams" class="form-control" placeholder="150">
+      </div>
+      <div>
+        <label>Calories</label>
+        <input type="number" name="calories" class="form-control" placeholder="300">
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button type="submit" class="btn-teal d-block" style="background:#22C55E;white-space:nowrap;">+ Log Meal</button>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="anti_inflammatory" id="anti_inf" checked>
+        <label class="form-check-label" for="anti_inf" style="font-size:.85rem;">This is an anti-inflammatory food ✓</label>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Today's Log -->
+{% if meals %}
+<div class="card p-4 mt-4">
+  <h5 style="font-weight:700;margin-bottom:14px;">Today's Food Log</h5>
+  <div style="display:flex;gap:16px;margin-bottom:16px;">
+    <div style="background:#F0FDF4;border-radius:10px;padding:12px 20px;text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#22C55E;">{{ (meals | sum(attribute='calories') or 0) | int }}</div>
+      <div style="font-size:.75rem;color:#64748b;">kcal today</div>
+    </div>
+    <div style="background:#F0FDFA;border-radius:10px;padding:12px 20px;text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#0D9488;">{{ meals | length }}</div>
+      <div style="font-size:.75rem;color:#64748b;">meals logged</div>
+    </div>
+    <div style="background:#DCFCE7;border-radius:10px;padding:12px 20px;text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#16A34A;">{{ meals | selectattr('anti_inflammatory') | list | length }}</div>
+      <div style="font-size:.75rem;color:#64748b;">anti-inflammatory</div>
+    </div>
+  </div>
+  {% for meal in meals %}
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F0FDFA;">
+    <div>
+      <span style="font-size:.72rem;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:6px;
+        background:{% if meal.meal_type=='Breakfast' %}#FEF3C7{% elif meal.meal_type=='Lunch' %}#DCFCE7{% elif meal.meal_type=='Dinner' %}#EDE9FE{% else %}#F0FDFA{% endif %};
+        color:{% if meal.meal_type=='Breakfast' %}#92400E{% elif meal.meal_type=='Lunch' %}#166534{% elif meal.meal_type=='Dinner' %}#5B21B6{% else %}#0F766E{% endif %};">
+        {{ meal.meal_type }}
+      </span>
+      <span style="font-weight:600;margin-left:8px;">{{ meal.food_item }}</span>
+      {% if meal.anti_inflammatory %}<span style="font-size:.72rem;color:#22C55E;margin-left:6px;">✓ Anti-inflammatory</span>{% endif %}
+    </div>
+    <div style="text-align:right;font-size:.85rem;">
+      {% if meal.calories %}<strong style="color:#0D9488;">{{ meal.calories | int }} kcal</strong>{% endif %}
+      {% if meal.quantity_grams %}<span style="color:#64748b;margin-left:8px;">{{ meal.quantity_grams | int }}g</span>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

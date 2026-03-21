@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Heart Rate — ArthriCare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1><i class="bi bi-heart-pulse me-2" style="color:#EF4444;"></i>Heart Rate Monitor</h1>
+  <p style="color:#64748b;margin-top:4px;font-size:.9rem;">Track your heart rate over time alongside inflammation markers</p></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:24px;">
+  <div class="card p-4">
+    <h5 style="font-weight:700;margin-bottom:20px;">Log Heart Rate</h5>
+    <form method="POST">
+      <div class="mb-3">
+        <label>BPM (Beats Per Minute)</label>
+        <div style="position:relative;">
+          <input type="number" name="bpm" class="form-control" placeholder="e.g. 72" min="30" max="220" required style="font-size:2rem;font-weight:800;text-align:center;color:#EF4444;padding:20px;">
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.75rem;color:#94A3B8;margin-top:6px;">
+          <span>Normal Resting: 60–100 bpm</span><span>Athletic: 40–60 bpm</span>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label>Measurement Type</label>
+        <select name="measurement_type" class="form-select">
+          <option value="resting">Resting</option>
+          <option value="post-exercise">Post-Exercise</option>
+          <option value="manual">Manual Check</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label>Time</label>
+        <input type="time" name="log_time" class="form-control">
+      </div>
+      <button type="submit" class="btn-teal w-100" style="background:#EF4444;">
+        <i class="bi bi-heart-pulse me-2"></i>Save Heart Rate
+      </button>
+    </form>
+
+    <!-- HR Reference -->
+    <div style="margin-top:24px;background:#FFF5F5;border-radius:12px;padding:16px;">
+      <h6 style="font-weight:700;color:#991B1B;margin-bottom:10px;">Heart Rate Zones</h6>
+      {% for zone, range, note in [('Rest','60–100 bpm','Normal adult range'),('Elevated','101–120 bpm','Stress / Inflammation'),('High','>120 bpm','Consult doctor')] %}
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:.83rem;border-bottom:1px solid #FEE2E2;">
+        <span>{{ zone }}</span><span style="font-weight:600;">{{ range }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card p-4">
+    <h5 style="font-weight:700;margin-bottom:16px;">Heart Rate Trend</h5>
+    <canvas id="hrChart" height="130" style="margin-bottom:20px;"></canvas>
+    <div style="max-height:300px;overflow-y:auto;">
+      {% if logs %}
+        {% for log in logs %}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F0FDFA;">
+          <div>
+            <span style="font-weight:600;">{{ log.log_date }}</span>
+            {% if log.log_time %}<span style="color:#64748b;font-size:.8rem;margin-left:6px;">{{ log.log_time }}</span>{% endif %}
+            <span class="badge ms-2" style="font-size:.7rem;padding:3px 8px;border-radius:6px;
+              {% if log.bpm <= 100 %}background:#DCFCE7;color:#166534;{% elif log.bpm <= 120 %}background:#FEF3C7;color:#92400E;{% else %}background:#FEE2E2;color:#991B1B;{% endif %}">
+              {{ log.measurement_type }}
+            </span>
+          </div>
+          <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;
+            color:{% if log.bpm <= 100 %}#22C55E{% elif log.bpm <= 120 %}#F59E0B{% else %}#EF4444{% endif %};">
+            {{ log.bpm }} <span style="font-size:.75rem;font-weight:400;">bpm</span>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:40px;color:#94A3B8;">
+          <i class="bi bi-heart" style="font-size:2.5rem;"></i>
+          <p style="margin-top:12px;">No heart rate logs yet.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const hrData = {{ logs | tojson }};
+if (hrData.length) {
+  new Chart(document.getElementById('hrChart'), {
+    type: 'line',
+    data: {
+      labels: hrData.map(d => d.log_date).reverse(),
+      datasets: [{
+        label: 'BPM',
+        data: hrData.map(d => d.bpm).reverse(),
+        borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,.08)',
+        tension: 0.4, fill: true, pointBackgroundColor: '#EF4444', pointRadius: 5
+      }]
+    },
+    options: {
+      scales: { y: { suggestedMin: 40, suggestedMax: 140 } },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+</script>
+{% endblock %}

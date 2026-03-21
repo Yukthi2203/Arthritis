@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Upload Reports — ArthriCare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1><i class="bi bi-cloud-upload me-2" style="color:#0D9488;"></i>Upload Health Reports</h1>
+  <p style="color:#64748b;margin-top:4px;font-size:.9rem;">Upload blood reports, X-rays, or scans for AI analysis</p></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+  <!-- Upload Form -->
+  <div class="card p-4">
+    <h5 style="font-weight:700;margin-bottom:20px;">Upload New Report</h5>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label>Report Type</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+          <label style="border:2px solid #CCFBF1;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;" id="lbl-blood">
+            <input type="radio" name="report_type" value="blood" checked style="display:none;" onchange="toggleType('blood')">
+            <i class="bi bi-droplet-fill" style="font-size:1.8rem;color:#EF4444;display:block;margin-bottom:6px;"></i>
+            <span style="font-size:.85rem;font-weight:600;">Blood Report</span>
+          </label>
+          <label style="border:2px solid #CCFBF1;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;" id="lbl-xray">
+            <input type="radio" name="report_type" value="xray" style="display:none;" onchange="toggleType('xray')">
+            <i class="bi bi-camera" style="font-size:1.8rem;color:#6366F1;display:block;margin-bottom:6px;"></i>
+            <span style="font-size:.85rem;font-weight:600;">X-Ray / Scan</span>
+          </label>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label>Report Date</label>
+        <input type="date" name="report_date" class="form-control" required>
+      </div>
+
+      <!-- Blood Report Fields -->
+      <div id="blood-fields">
+        <p style="font-size:.8rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">Blood Values (optional — fill what you have)</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          {% for field, label in [('rbc','RBC (M/uL)'),('wbc','WBC (K/uL)'),('hemoglobin','Hemoglobin (g/dL)'),('esr','ESR (mm/hr)'),('crp','CRP (mg/L)'),('uric_acid','Uric Acid (mg/dL)'),('rf_factor','RF Factor (IU/mL)'),('vitamin_d','Vitamin D (ng/mL)')] %}
+          <div>
+            <label style="font-size:.78rem;">{{ label }}</label>
+            <input type="number" step="0.01" name="{{ field }}" class="form-control" placeholder="—">
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- X-Ray Fields -->
+      <div id="xray-fields" style="display:none;">
+        <div class="mb-3">
+          <label>Body Part</label>
+          <select name="body_part" class="form-select">
+            <option>Knee</option><option>Hip</option><option>Hand / Wrist</option>
+            <option>Spine</option><option>Shoulder</option><option>Ankle</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3 mt-3">
+        <label>Upload File (PDF, JPG, PNG)</label>
+        <div style="border:2px dashed #CCFBF1;border-radius:12px;padding:24px;text-align:center;cursor:pointer;" onclick="document.getElementById('fileInput').click()">
+          <i class="bi bi-cloud-arrow-up" style="font-size:2rem;color:#0D9488;"></i>
+          <p style="margin-top:8px;color:#64748b;font-size:.88rem;">Click to select file or drag & drop</p>
+          <p style="font-size:.75rem;color:#94A3B8;">PDF, JPG, PNG up to 10MB</p>
+          <span id="fileName" style="font-size:.82rem;color:#0D9488;"></span>
+        </div>
+        <input type="file" id="fileInput" name="report_file" style="display:none;" accept=".pdf,.jpg,.jpeg,.png" onchange="showFileName(this)">
+      </div>
+      <button type="submit" class="btn-teal w-100"><i class="bi bi-cloud-upload me-2"></i>Upload Report</button>
+    </form>
+  </div>
+
+  <!-- Uploaded Reports -->
+  <div>
+    <div class="card p-4 mb-4">
+      <h5 style="font-weight:700;margin-bottom:16px;"><i class="bi bi-droplet me-2" style="color:#EF4444;"></i>Blood Reports</h5>
+      {% if reports %}
+        {% for r in reports %}
+        <div style="padding:12px 0;border-bottom:1px solid #F0FDFA;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-weight:600;font-size:.9rem;">{{ r.report_date }}</div>
+              <div style="font-size:.78rem;color:#64748b;margin-top:2px;">
+                {% if r.crp %}CRP: {{ r.crp }}  {% endif %}
+                {% if r.esr %}ESR: {{ r.esr }}  {% endif %}
+                {% if r.uric_acid %}Uric Acid: {{ r.uric_acid }}{% endif %}
+              </div>
+            </div>
+            {% if r.file_path %}<a href="#" style="color:#0D9488;font-size:.82rem;"><i class="bi bi-eye"></i> View</a>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="color:#94A3B8;font-size:.88rem;text-align:center;padding:20px;">No blood reports uploaded yet.</p>
+      {% endif %}
+    </div>
+
+    <div class="card p-4">
+      <h5 style="font-weight:700;margin-bottom:16px;"><i class="bi bi-camera me-2" style="color:#6366F1;"></i>X-Rays & Scans</h5>
+      {% if xrays %}
+        {% for x in xrays %}
+        <div style="padding:12px 0;border-bottom:1px solid #F0FDFA;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-weight:600;font-size:.9rem;">{{ x.body_part }} — {{ x.upload_date }}</div>
+              {% if x.ml_prediction %}<span class="badge badge-teal" style="font-size:.72rem;padding:3px 8px;border-radius:6px;">{{ x.ml_prediction }}</span>{% endif %}
+            </div>
+            {% if x.gradcam_path %}<a href="{{ x.gradcam_path }}" style="color:#6366F1;font-size:.82rem;"><i class="bi bi-eye"></i> Grad-CAM</a>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="color:#94A3B8;font-size:.88rem;text-align:center;padding:20px;">No X-rays uploaded yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function toggleType(type) {
+  document.getElementById('blood-fields').style.display = type === 'blood' ? 'block' : 'none';
+  document.getElementById('xray-fields').style.display  = type === 'xray'  ? 'block' : 'none';
+  document.getElementById('lbl-blood').style.borderColor = type === 'blood' ? '#0D9488' : '#CCFBF1';
+  document.getElementById('lbl-xray').style.borderColor  = type === 'xray'  ? '#0D9488' : '#CCFBF1';
+}
+function showFileName(input) {
+  document.getElementById('fileName').textContent = input.files[0]?.name || '';
+}
+</script>
+{% endblock %}

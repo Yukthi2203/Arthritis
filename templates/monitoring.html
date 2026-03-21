@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Monitoring Dashboard — ArthriCare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1><i class="bi bi-activity me-2" style="color:#0D9488;"></i>Monitoring Dashboard</h1>
+  <p style="color:#64748b;margin-top:4px;font-size:.9rem;">30-day health overview — all your metrics in one place</p></div>
+</div>
+
+<!-- Summary Stats -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;">
+  {% set avg_pain = (pain_logs | sum(attribute='pain_score') / pain_logs|length) if pain_logs else 0 %}
+  {% set avg_hr   = (hr_logs | sum(attribute='bpm') / hr_logs|length) if hr_logs else 0 %}
+  {% set total_steps = ex_logs | sum(attribute='steps_count') if ex_logs else 0 %}
+  {% set total_meals = diet_logs | length %}
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FEF3C7;color:#F59E0B;"><i class="bi bi-thermometer-half"></i></div>
+    <div class="stat-value">{{ '%.1f' | format(avg_pain) }}</div>
+    <div class="stat-label">Avg Pain Score (30d)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FEE2E2;color:#EF4444;"><i class="bi bi-heart-pulse"></i></div>
+    <div class="stat-value">{{ avg_hr | int }}</div>
+    <div class="stat-label">Avg Heart Rate (30d)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#EDE9FE;color:#8B5CF6;"><i class="bi bi-footprints"></i></div>
+    <div class="stat-value">{{ total_steps | int }}</div>
+    <div class="stat-label">Total Steps (30d)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#DCFCE7;color:#22C55E;"><i class="bi bi-egg-fried"></i></div>
+    <div class="stat-value">{{ total_meals }}</div>
+    <div class="stat-label">Meals Logged (30d)</div>
+  </div>
+</div>
+
+<!-- Charts Grid -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+  <div class="card p-4">
+    <h5 style="font-weight:700;margin-bottom:16px;">Pain Score Trend</h5>
+    <canvas id="painTrend" height="120"></canvas>
+  </div>
+  <div class="card p-4">
+    <h5 style="font-weight:700;margin-bottom:16px;">Heart Rate Trend</h5>
+    <canvas id="hrTrend" height="120"></canvas>
+  </div>
+  <div class="card p-4">
+    <h5 style="font-weight:700;margin-bottom:16px;">Exercise Duration (mins/day)</h5>
+    <canvas id="exTrend" height="120"></canvas>
+  </div>
+  <div class="card p-4">
+    <h5 style="font-weight:700;margin-bottom:16px;">Calorie Intake per Day</h5>
+    <canvas id="calTrend" height="120"></canvas>
+  </div>
+</div>
+
+<!-- ML Predictions History -->
+{% if predictions %}
+<div class="card p-4">
+  <h5 style="font-weight:700;margin-bottom:16px;"><i class="bi bi-robot me-2"></i>Recent AI Predictions</h5>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:.88rem;">
+      <thead>
+        <tr style="border-bottom:2px solid #CCFBF1;">
+          <th style="padding:10px;text-align:left;color:#64748b;font-weight:600;">Date</th>
+          <th style="padding:10px;text-align:left;color:#64748b;font-weight:600;">Input Type</th>
+          <th style="padding:10px;text-align:left;color:#64748b;font-weight:600;">Prediction</th>
+          <th style="padding:10px;text-align:left;color:#64748b;font-weight:600;">Confidence</th>
+          <th style="padding:10px;text-align:left;color:#64748b;font-weight:600;">Risk</th>
+          <th style="padding:10px;text-align:left;color:#64748b;font-weight:600;">Model</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in predictions %}
+        <tr style="border-bottom:1px solid #F0FDFA;">
+          <td style="padding:10px;">{{ p.prediction_date }}</td>
+          <td style="padding:10px;"><span class="badge badge-teal" style="font-size:.72rem;padding:3px 8px;border-radius:6px;">{{ p.input_type }}</span></td>
+          <td style="padding:10px;font-weight:600;">{{ p.predicted_class }}</td>
+          <td style="padding:10px;">{{ p.confidence_score }}%</td>
+          <td style="padding:10px;">
+            <span style="padding:3px 10px;border-radius:100px;font-size:.75rem;font-weight:600;
+              background:{% if p.risk_level=='high' %}#FEE2E2{% elif p.risk_level=='moderate' %}#FEF3C7{% else %}#DCFCE7{% endif %};
+              color:{% if p.risk_level=='high' %}#991B1B{% elif p.risk_level=='moderate' %}#92400E{% else %}#166534{% endif %};">
+              {{ p.risk_level | upper }}
+            </span>
+          </td>
+          <td style="padding:10px;font-size:.8rem;color:#64748b;">{{ p.model_used }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+const painLogs = {{ pain_logs | tojson }};
+const hrLogs   = {{ hr_logs | tojson }};
+const exLogs   = {{ ex_logs | tojson }};
+const dietLogs = {{ diet_logs | tojson }};
+
+const chartOpts = { plugins: { legend: { display: false } } };
+
+new Chart(document.getElementById('painTrend'), {
+  type: 'line',
+  data: { labels: painLogs.map(d=>d.log_date).reverse(), datasets: [{ data: painLogs.map(d=>d.pain_score).reverse(), borderColor:'#F59E0B', backgroundColor:'rgba(245,158,11,.08)', tension:0.4, fill:true }] },
+  options: { ...chartOpts, scales: { y: { min:0, max:10 } } }
+});
+new Chart(document.getElementById('hrTrend'), {
+  type: 'line',
+  data: { labels: hrLogs.map(d=>d.log_date).reverse(), datasets: [{ data: hrLogs.map(d=>d.bpm).reverse(), borderColor:'#EF4444', backgroundColor:'rgba(239,68,68,.08)', tension:0.4, fill:true }] },
+  options: chartOpts
+});
+new Chart(document.getElementById('exTrend'), {
+  type: 'bar',
+  data: { labels: exLogs.map(d=>d.plan_date).reverse(), datasets: [{ data: exLogs.map(d=>d.duration_mins||0).reverse(), backgroundColor:'rgba(139,92,246,.5)', borderRadius:4 }] },
+  options: chartOpts
+});
+new Chart(document.getElementById('calTrend'), {
+  type: 'bar',
+  data: { labels: dietLogs.map(d=>d.plan_date).reverse(), datasets: [{ data: dietLogs.map(d=>d.calories||0).reverse(), backgroundColor:'rgba(34,197,94,.4)', borderRadius:4 }] },
+  options: chartOpts
+});
+</script>
+{% endblock %}

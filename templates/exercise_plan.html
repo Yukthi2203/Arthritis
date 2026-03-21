@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Exercise Plan — ArthriCare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1><i class="bi bi-bicycle me-2" style="color:#8B5CF6;"></i>Your Personalised Exercise Plan</h1>
+    <p style="color:#64748b;margin-top:4px;font-size:.9rem;">
+      Based on: <strong>{{ arthritis_type }}</strong> · Pain Score:
+      <span style="font-weight:700;color:{{ '#22C55E' if pain_score<=3 else '#F59E0B' if pain_score<=6 else '#EF4444' }};">{{ pain_score }}/10</span>
+      · Intensity Level: <strong>{{ recs.exercise.label }}</strong>
+    </p>
+  </div>
+</div>
+
+<!-- Pain Level Banner -->
+<div style="border-radius:16px;padding:20px 24px;margin-bottom:24px;
+  background:{{ 'linear-gradient(135deg,#14532D,#166534)' if pain_level=='low' else 'linear-gradient(135deg,#78350F,#92400E)' if pain_level=='moderate' else 'linear-gradient(135deg,#7F1D1D,#991B1B)' }};
+  color:#fff;">
+  <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;opacity:.75;margin-bottom:6px;">Exercise Mode — {{ recs.exercise.label }}</div>
+  <p style="font-size:.95rem;line-height:1.6;margin:0 0 10px;">{{ recs.exercise.description }}</p>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;">
+    <span style="background:rgba(255,255,255,.15);border-radius:100px;padding:5px 14px;font-size:.82rem;">
+      🚶 Target: {{ recs.exercise.daily_steps }} steps/day
+    </span>
+    <span style="background:rgba(255,255,255,.15);border-radius:100px;padding:5px 14px;font-size:.82rem;">
+      💡 {{ recs.exercise.rest_advice }}
+    </span>
+  </div>
+</div>
+
+<!-- Recommended Exercises Grid -->
+<div class="card p-4 mb-4">
+  <h5 style="font-weight:700;margin-bottom:16px;"><i class="bi bi-stars me-2" style="color:#8B5CF6;"></i>Recommended Exercises for You Today</h5>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;">
+    {% for ex in recs.exercise.exercises %}
+    <div style="border:2px solid #EDE9FE;border-radius:14px;padding:18px;cursor:pointer;transition:all .2s;background:#FAFAFA;"
+      onclick="fillExercise('{{ ex.name }}','{{ ex.type }}','{{ ex.duration.split('-')[0] | replace(' min','') | trim }}')"
+      onmouseover="this.style.borderColor='#8B5CF6';this.style.background='#F5F3FF'"
+      onmouseout="this.style.borderColor='#EDE9FE';this.style.background='#FAFAFA'">
+      <div style="font-size:1.6rem;margin-bottom:8px;">{{ ex.emoji }}</div>
+      <div style="font-weight:700;font-size:.92rem;margin-bottom:4px;">{{ ex.name }}</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="background:#EDE9FE;color:#5B21B6;border-radius:100px;padding:2px 8px;font-size:.72rem;font-weight:600;">{{ ex.duration }}</span>
+        <span style="background:#F0FDFA;color:#0F766E;border-radius:100px;padding:2px 8px;font-size:.72rem;font-weight:600;">{{ ex.type }}</span>
+      </div>
+      <div style="font-size:.78rem;color:#64748b;line-height:1.5;">{{ ex.benefit }}</div>
+      <div style="margin-top:10px;font-size:.75rem;color:#8B5CF6;font-weight:600;">Click to add →</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Log Form -->
+<div class="card p-4 mb-4">
+  <h5 style="font-weight:700;margin-bottom:16px;"><i class="bi bi-plus-circle me-2" style="color:#8B5CF6;"></i>Log Exercise</h5>
+  <form method="POST">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr auto;gap:12px;align-items:end;">
+      <div>
+        <label>Exercise Name</label>
+        <input type="text" name="exercise_name" id="exerciseName" class="form-control" placeholder="e.g. Morning Walk" required>
+      </div>
+      <div>
+        <label>Type</label>
+        <select name="exercise_type" id="exerciseType" class="form-select">
+          <option value="walk">Walk</option>
+          <option value="stretching">Stretching</option>
+          <option value="strength">Strength</option>
+          <option value="cardio">Cardio</option>
+          <option value="yoga">Yoga</option>
+          <option value="therapy">Therapy</option>
+          <option value="relaxation">Relaxation</option>
+          <option value="flexibility">Flexibility</option>
+          <option value="balance">Balance</option>
+        </select>
+      </div>
+      <div>
+        <label>Duration (mins)</label>
+        <input type="number" name="duration_mins" id="exerciseDuration" class="form-control" placeholder="30" min="1">
+      </div>
+      <div>
+        <label>Steps (walk)</label>
+        <input type="number" name="steps_count" class="form-control" placeholder="3000" min="0">
+      </div>
+      <div>
+        <label>Pain Before</label>
+        <input type="number" name="pain_before" class="form-control" min="0" max="10" placeholder="0–10">
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button type="submit" class="btn-teal d-block" style="background:#8B5CF6;white-space:nowrap;">+ Log</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:20px;margin-top:12px;align-items:center;flex-wrap:wrap;">
+      <div>
+        <label style="margin-bottom:0;margin-right:8px;">Intensity:</label>
+        {% for lvl in ['low','moderate','high'] %}
+        <label style="margin-right:10px;cursor:pointer;">
+          <input type="radio" name="intensity" value="{{ lvl }}" {% if lvl=='low' %}checked{% endif %} style="margin-right:4px;">
+          {{ '🟢' if lvl=='low' else '🟡' if lvl=='moderate' else '🔴' }} {{ lvl.title() }}
+        </label>
+        {% endfor %}
+      </div>
+      <div class="form-check mb-0">
+        <input class="form-check-input" type="checkbox" name="completed" id="completed" checked>
+        <label class="form-check-label" for="completed">Completed ✓</label>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Today's Log -->
+{% if exercises %}
+<div class="card p-4">
+  <h5 style="font-weight:700;margin-bottom:14px;">Today's Exercise Log</h5>
+  <div style="display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap;">
+    <div style="background:#F5F3FF;border-radius:10px;padding:12px 20px;text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#8B5CF6;">{{ exercises | sum(attribute='duration_mins') | int }}</div>
+      <div style="font-size:.75rem;color:#64748b;">minutes active</div>
+    </div>
+    <div style="background:#DCFCE7;border-radius:10px;padding:12px 20px;text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#22C55E;">{{ exercises | selectattr('completed') | list | length }}/{{ exercises | length }}</div>
+      <div style="font-size:.75rem;color:#64748b;">completed</div>
+    </div>
+    <div style="background:#F0FDFA;border-radius:10px;padding:12px 20px;text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#0D9488;">{{ exercises | sum(attribute='steps_count') | int }}</div>
+      <div style="font-size:.75rem;color:#64748b;">total steps</div>
+    </div>
+  </div>
+  {% for ex in exercises %}
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F5F3FF;">
+    <div>
+      <span style="font-size:1rem;">{{ '🚶' if ex.exercise_type=='walk' else '🧘' if 'yoga' in ex.exercise_type else '💪' if ex.exercise_type=='strength' else '🤸' }}</span>
+      <strong style="margin-left:6px;">{{ ex.exercise_name }}</strong>
+      <span style="font-size:.78rem;color:#64748b;margin-left:8px;">{{ ex.exercise_type }} · {{ ex.duration_mins or 0 }} min{% if ex.steps_count %} · {{ ex.steps_count }} steps{% endif %}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="padding:3px 10px;border-radius:100px;font-size:.73rem;font-weight:600;
+        background:{% if ex.intensity=='low' %}#DCFCE7{% elif ex.intensity=='moderate' %}#FEF3C7{% else %}#FEE2E2{% endif %};
+        color:{% if ex.intensity=='low' %}#166534{% elif ex.intensity=='moderate' %}#92400E{% else %}#991B1B{% endif %};">
+        {{ ex.intensity }}
+      </span>
+      {% if ex.completed %}<span style="color:#22C55E;font-size:.82rem;font-weight:600;">✓ Done</span>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card p-4" style="text-align:center;padding:40px!important;color:#94A3B8;">
+  <i class="bi bi-bicycle" style="font-size:2.5rem;"></i>
+  <p style="margin-top:12px;">No exercises logged today. Click a recommended exercise above to get started!</p>
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+function fillExercise(name, type, mins) {
+  document.getElementById('exerciseName').value = name;
+  document.getElementById('exerciseDuration').value = mins;
+  const sel = document.getElementById('exerciseType');
+  for (let opt of sel.options) {
+    if (opt.value === type) { opt.selected = true; break; }
+  }
+  document.getElementById('exerciseName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+</script>
+{% endblock %}

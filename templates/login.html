@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Login — ArthriCare{% endblock %}
+{% block content %}
+<style>
+  body { background: linear-gradient(135deg, #0F766E 0%, #134E4A 100%); min-height: 100vh; }
+  .auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .auth-card { background: #fff; border-radius: 24px; padding: 48px 40px; width: 100%; max-width: 440px; box-shadow: 0 24px 64px rgba(0,0,0,.2); }
+  .auth-logo { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: #0F766E; margin-bottom: 8px; }
+  .auth-logo span { color: #F59E0B; }
+  .auth-sub { color: #64748b; font-size: .9rem; margin-bottom: 32px; }
+  .form-group { margin-bottom: 18px; }
+  .input-icon-wrap { position: relative; }
+  .input-icon-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94A3B8; }
+  .input-icon-wrap .form-control { padding-left: 40px; }
+  .btn-login { width: 100%; background: #0D9488; color: #fff; border: none; border-radius: 12px; padding: 13px; font-weight: 700; font-size: 1rem; font-family: 'Syne', sans-serif; transition: background .2s; cursor: pointer; }
+  .btn-login:hover { background: #0F766E; }
+  .auth-footer { text-align: center; margin-top: 24px; font-size: .88rem; color: #64748b; }
+  .auth-footer a { color: #0D9488; font-weight: 600; text-decoration: none; }
+</style>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">Arthri<span>Care</span></div>
+    <div class="auth-sub">Sign in to your health dashboard</div>
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="input-icon-wrap">
+          <i class="bi bi-envelope"></i>
+          <input type="email" name="email" class="form-control" placeholder="you@email.com" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-icon-wrap">
+          <i class="bi bi-lock"></i>
+          <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+        </div>
+      </div>
+      <button type="submit" class="btn-login">Sign In</button>
+    </form>
+    <div class="auth-footer">Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a></div>
+  </div>
+</div>
+{% endblock %}

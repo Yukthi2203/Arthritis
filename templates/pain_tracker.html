@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Pain Tracker — ArthriCare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1><i class="bi bi-thermometer-half me-2" style="color:#F59E0B;"></i>Pain Tracker</h1>
+  <p style="color:#64748b;margin-top:4px;font-size:.9rem;">Rate your daily pain and track joint-specific symptoms</p></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:24px;">
+  <!-- Log Form -->
+  <div class="card p-4">
+    <h5 style="font-weight:700;margin-bottom:20px;">Log Today's Pain</h5>
+    <form method="POST">
+      <div class="form-group mb-3">
+        <label>Pain Score (0 = No Pain, 10 = Worst)</label>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;" id="painDots">
+          {% for i in range(0, 11) %}
+          <div class="pain-dot" data-val="{{ i }}" onclick="selectPain({{ i }})"
+            style="background:{{ '#22C55E' if i<=2 else '#F59E0B' if i<=5 else '#EF4444' }};color:#fff;">{{ i }}</div>
+          {% endfor %}
+        </div>
+        <input type="hidden" name="pain_score" id="painScoreInput" value="5" required>
+      </div>
+      <div class="form-group mb-3">
+        <label>Joint Affected</label>
+        <select name="joint_affected" class="form-select">
+          <option>Knee</option><option>Hip</option><option>Wrist</option>
+          <option>Fingers</option><option>Shoulder</option><option>Ankle</option>
+          <option>Spine / Back</option><option>Multiple Joints</option>
+        </select>
+      </div>
+      <div class="form-group mb-3">
+        <label>Morning Stiffness (minutes)</label>
+        <input type="number" name="stiffness_mins" class="form-control" placeholder="e.g. 30" min="0">
+      </div>
+      <div class="form-group mb-3">
+        <label>Fatigue Level (0–10)</label>
+        <input type="number" name="fatigue_level" class="form-control" min="0" max="10" placeholder="e.g. 5">
+      </div>
+      <div class="form-group mb-3">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="swelling" id="swelling">
+          <label class="form-check-label" for="swelling">Swelling present?</label>
+        </div>
+      </div>
+      <div class="form-group mb-3">
+        <label>Notes</label>
+        <textarea name="notes" class="form-control" rows="3" placeholder="Any additional observations..."></textarea>
+      </div>
+      <button type="submit" class="btn-teal w-100">Save Pain Log</button>
+    </form>
+  </div>
+  <!-- Log History -->
+  <div class="card p-4">
+    <h5 style="font-weight:700;margin-bottom:16px;">Recent Pain History</h5>
+    <canvas id="painHistChart" height="120" style="margin-bottom:20px;"></canvas>
+    <div style="max-height:340px;overflow-y:auto;">
+      {% if logs %}
+        {% for log in logs %}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #F0FDFA;">
+          <div>
+            <span style="font-weight:600;">{{ log.joint_affected }}</span>
+            <span style="font-size:.8rem;color:#64748b;margin-left:8px;">{{ log.log_date }}</span>
+            {% if log.swelling %}<span class="badge badge-red ms-2" style="font-size:.7rem;padding:3px 8px;border-radius:6px;">Swelling</span>{% endif %}
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            {% if log.stiffness_duration_mins %}<span style="font-size:.78rem;color:#64748b;">{{ log.stiffness_duration_mins }}min stiff</span>{% endif %}
+            <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;
+              background:{{ '#DCFCE7' if log.pain_score<=2 else '#FEF3C7' if log.pain_score<=5 else '#FEE2E2' }};
+              color:{{ '#166534' if log.pain_score<=2 else '#92400E' if log.pain_score<=5 else '#991B1B' }};">
+              {{ log.pain_score }}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:40px;color:#94A3B8;">
+          <i class="bi bi-clipboard2-pulse" style="font-size:2.5rem;"></i>
+          <p style="margin-top:12px;">No pain logs yet. Start tracking above.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function selectPain(val) {
+  document.getElementById('painScoreInput').value = val;
+  document.querySelectorAll('.pain-dot').forEach(d => {
+    d.style.opacity = d.dataset.val == val ? '1' : '0.4';
+    d.style.transform = d.dataset.val == val ? 'scale(1.2)' : 'scale(1)';
+  });
+}
+selectPain(5);
+
+const logs = {{ logs | tojson }};
+if (logs.length) {
+  new Chart(document.getElementById('painHistChart'), {
+    type: 'bar',
+    data: {
+      labels: logs.map(d => d.log_date).reverse(),
+      datasets: [{
+        label: 'Pain Score',
+        data: logs.map(d => d.pain_score).reverse(),
+        backgroundColor: logs.map(d => d.pain_score <= 2 ? '#86EFAC' : d.pain_score <= 5 ? '#FCD34D' : '#FCA5A5').reverse(),
+        borderRadius: 6
+      }]
+    },
+    options: { scales: { y: { min: 0, max: 10 } }, plugins: { legend: { display: false } } }
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,13 @@
+flask
+flask-login
+flask-bcrypt
+supabase
+python-dotenv
+pandas
+numpy
+scikit-learn
+opencv-python
+pillow
+albumentations
+grad-cam
+gunicorn
